@@ -1,14 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"reflect"
 	"strings"
 	"testing"
 )
 
-func TestInject(t *testing.T) {
+func TestUpdateHTML(t *testing.T) {
 	html := `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -26,7 +25,7 @@ func TestInject(t *testing.T) {
 
 	value := "test string"
 
-	Inject(value, strings.NewReader(html), &sb)
+	updateHTML(value, strings.NewReader(html), &sb)
 	got := sb.String()
 	if strings.Index(got, value) == -1 {
 		t.Errorf("could not find %q in %s", value, got)
@@ -49,7 +48,7 @@ func TestInjectRaisesErrorIfNoMarkerFound(t *testing.T) {
 
 	value := "test string"
 
-	err := Inject(value, strings.NewReader(html), &sb)
+	err := updateHTML(value, strings.NewReader(html), &sb)
 	if err == nil {
 		t.Errorf("expected an error")
 	}
@@ -92,7 +91,6 @@ func TestGetEnvVarsThrowsErrorForMissingVar(t *testing.T) {
 	_, err := getEnvVars(whitelist)
 	switch err.(type) {
 	case *ErrEnvVarNotFound:
-		fmt.Println(err)
 		if err.Error() != want {
 			t.Errorf("got %q, want %q", err.Error(), want)
 		}
@@ -100,3 +98,50 @@ func TestGetEnvVarsThrowsErrorForMissingVar(t *testing.T) {
 		t.Error("Expected ErrEnvVarNotFound")
 	}
 }
+
+func TestWhitelistParser(t *testing.T) {
+	var whitelistTests = []struct {
+		in  string
+		out []string
+	}{
+		{"ENV1,ENV2", []string{"ENV1", "ENV2"}},
+		{"ENV1,ENV2,", []string{"ENV1", "ENV2"}},
+		{"ENV1,,,ENV2", []string{"ENV1", "ENV2"}},
+	}
+
+	for _, tt := range whitelistTests {
+		t.Run(tt.in, func(t *testing.T) {
+			got := parseWhitelist(tt.in)
+			if !reflect.DeepEqual(got, tt.out) {
+				t.Errorf("got %v, want %v", got, tt.out)
+			}
+		})
+	}
+}
+
+// func TestInject(t *testing.T) {
+// 	html := `<!DOCTYPE html>
+// 	<html lang="en">
+// 	  <head>
+// 		<meta charset="UTF-8" />
+// 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+// 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+// 		<title>Document</title>
+// 	  </head>
+// 	  <body>
+// 	  </body>
+// 	</html>`
+
+// 	var buf bytes.Buffer
+// 	out := bufio.NewWriter(&buf)
+
+// 	in := strings.NewReader(html)
+// 	// updateHTML(value, strings.NewReader(html), &sb)
+// 	inject("TESTVAR=hi", in, out)
+// 	got := buf.String()
+// 	want := `"TESTVAR": "hi"`
+// 	fmt.Println(got)
+// 	if strings.Index(got, want) == -1 {
+// 		t.Errorf("could not find %q in %s", want, got)
+// 	}
+// }

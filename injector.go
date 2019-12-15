@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -51,12 +52,7 @@ func getEnvVars(whitelist []string) (map[string]string, error) {
 	return vars, nil
 }
 
-// func buildJsonString(envVars map[string]string) (string, error) {
-// 	jsonString, err := json.Marshal(envVars)
-// 	return string(jsonString), err
-// }
-
-func Inject(jsonString string, htmlFile io.Reader, out io.Writer) error {
+func updateHTML(jsonString string, htmlFile io.Reader, out io.Writer) error {
 	doc, err := html.Parse(htmlFile)
 	if err != nil {
 		return err
@@ -89,5 +85,47 @@ func Inject(jsonString string, htmlFile io.Reader, out io.Writer) error {
 		return NewNoMarkerFoundError("Unable to find \"INECT_ENV_END\" marker")
 	}
 	html.Render(out, doc)
+	return nil
+}
+
+// https://github.com/golang/go/wiki/SliceTricks#filter-in-place
+func filter(a []string, keep func(string) bool) []string {
+	n := 0
+	for _, x := range a {
+		if keep(x) {
+			a[n] = x
+			n++
+		}
+	}
+	a = a[:n]
+	return a
+}
+
+func parseWhitelist(whitelistString string) []string {
+	names := strings.Split(whitelistString, ",")
+	keep := func(name string) bool {
+		if name != "" {
+			return true
+		}
+		return false
+	}
+	filteredNames := filter(names, keep)
+	return filteredNames
+}
+
+func inject(whitelistString string, html io.Reader, out io.Writer) error {
+	whitelist := parseWhitelist(whitelistString)
+	envVars, err := getEnvVars(whitelist)
+	if err != nil {
+		return err
+	}
+	jsonString, err := json.Marshal(envVars)
+	if err != nil {
+		return err
+	}
+	err = updateHTML(string(jsonString), html, out)
+	if err != nil {
+		return err
+	}
 	return nil
 }

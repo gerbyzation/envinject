@@ -1,38 +1,30 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "env-injector",
-	Short: "Insert env variables into SPA via meta tags",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("lets do something fun!")
-		filename := "index.html"
-		file, err := os.Open(filename)
-		if err != nil {
-			panic(err)
-		}
+var (
+	rootCmd = &cobra.Command{
+		Use:   "env-injector",
+		Short: "Insert env variables into SPA via meta tags",
+		Run:   run,
+	}
+	whitelist string
+)
 
-		fileReader := bufio.NewReader(file)
-		newFile, err := os.Create("new.html")
-		defer newFile.Close()
-		if err != nil {
-			panic(err)
-		}
-		writer := bufio.NewWriter(newFile)
+func run(cmd *cobra.Command, args []string) {
+	inject(whitelist, os.Stdin, os.Stdout)
+}
 
-		err = Inject("this is a test", fileReader, writer)
-		if err != nil {
-			panic(err)
-		}
-		writer.Flush()
-	},
+func init() {
+	flagSet := rootCmd.Flags()
+	flagSet.StringVar(&whitelist, "whitelist", "", "Comma separated list of env vars to inject")
+
+	cobra.MarkFlagRequired(flagSet, "whitelist")
 }
 
 func Execute() {
