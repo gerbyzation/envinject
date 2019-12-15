@@ -1,0 +1,11 @@
+name: test
+on: [push]
+
+jobs:
+  test:
+    name: run tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-go@v1
+      - run: go test .
