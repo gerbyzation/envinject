@@ -119,29 +119,33 @@ func TestWhitelistParser(t *testing.T) {
 	}
 }
 
-// func TestInject(t *testing.T) {
-// 	html := `<!DOCTYPE html>
-// 	<html lang="en">
-// 	  <head>
-// 		<meta charset="UTF-8" />
-// 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-// 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-// 		<title>Document</title>
-// 	  </head>
-// 	  <body>
-// 	  </body>
-// 	</html>`
+func TestInject(t *testing.T) {
+	os.Setenv("TESTVAR", "hi")
+	defer os.Unsetenv("TESTVAR")
+	html := `<!DOCTYPE html>
+	<html lang="en">
+	  <head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<title>Document</title>
+	  </head>
+	  <body>
+		<!-- INJECT_ENV_START -->
+		<!-- INJECT_ENV_END -->
+	</body>
+	</html>`
 
-// 	var buf bytes.Buffer
-// 	out := bufio.NewWriter(&buf)
+	var sb strings.Builder
 
-// 	in := strings.NewReader(html)
-// 	// updateHTML(value, strings.NewReader(html), &sb)
-// 	inject("TESTVAR=hi", in, out)
-// 	got := buf.String()
-// 	want := `"TESTVAR": "hi"`
-// 	fmt.Println(got)
-// 	if strings.Index(got, want) == -1 {
-// 		t.Errorf("could not find %q in %s", want, got)
-// 	}
-// }
+	in := strings.NewReader(html)
+	err := inject("TESTVAR", in, &sb)
+	if err != nil {
+		t.Error(err)
+	}
+	got := sb.String()
+	want := `"TESTVAR":"hi"`
+	if strings.Index(got, want) == -1 {
+		t.Errorf("could not find %q in %s", want, got)
+	}
+}
