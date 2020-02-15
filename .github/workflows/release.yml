@@ -27,7 +27,7 @@ jobs:
       - name: build darwin/amd64
         run: |
           go build -o $output_name
-          tar cvfz $output-name.tar.gz $output_name
+          tar cvfz $output_name.tar.gz $output_name
           ls
         env:
           GOOS: darwin
@@ -36,7 +36,7 @@ jobs:
       - name: build linux/amd64
         run: |
           go build -o $output_name
-          tar cvfz $output-name.tar.gz $output_name
+          tar cvfz $output_name.tar.gz $output_name
           ls
         env:
           GOOS: linux
