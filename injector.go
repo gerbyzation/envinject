@@ -1,13 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"strings"
-
-	"golang.org/x/net/html"
 )
 
 type NoMarkerFound struct {
@@ -53,38 +52,20 @@ func getEnvVars(whitelist []string) (map[string]string, error) {
 }
 
 func updateHTML(jsonString string, htmlFile io.Reader, out io.Writer) error {
-	doc, err := html.Parse(htmlFile)
-	if err != nil {
-		return err
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(htmlFile)
+	html := buf.String()
+
+	markers := strings.Count(html, "__ENV_INJECT__")
+	if markers == 0 {
+		return NewNoMarkerFoundError("Unable to find \"__ENV_INJECT__\" marker")
+	} else if markers > 1 {
+		return NewNoMarkerFoundError("Multiple markers \"__ENV_INJECT__\" found.")
 	}
-	markerFound := false
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		if n.Type == html.CommentNode {
-			text := strings.TrimSpace(n.Data)
-			if text == "INJECT_ENV_END" {
-				markerFound = true
-				script := html.Node{
-					Type: html.ElementNode,
-					Data: "script",
-				}
-				scriptContent := html.Node{
-					Type: html.TextNode,
-					Data: fmt.Sprintf("window.ENVVARS = %s;", jsonString),
-				}
-				script.AppendChild(&scriptContent)
-				n.Parent.InsertBefore(&script, n)
-			}
-		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
-		}
-	}
-	f(doc)
-	if markerFound == false {
-		return NewNoMarkerFoundError("Unable to find \"INECT_ENV_END\" marker")
-	}
-	html.Render(out, doc)
+	html = strings.Replace(html, "__ENV_INJECT__", jsonString, 1)
+
+	fmt.Fprint(out, html)
+
 	return nil
 }
 

@@ -17,8 +17,9 @@ func TestUpdateHTML(t *testing.T) {
     <title>Document</title>
   </head>
   <body>
-    <!-- INJECT_ENV_START -->
-    <!-- INJECT_ENV_END -->
+	<script>
+		window.CONFIG = __ENV_INJECT__;
+	</script>
   </body>
 </html>`
 	var sb strings.Builder
@@ -131,8 +132,9 @@ func TestInject(t *testing.T) {
 		<title>Document</title>
 	  </head>
 	  <body>
-		<!-- INJECT_ENV_START -->
-		<!-- INJECT_ENV_END -->
+	  <script>
+	  	window.CONFIG = __ENV_INJECT__;
+	  </script>
 	</body>
 	</html>`
 
