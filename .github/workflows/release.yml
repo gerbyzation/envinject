@@ -28,6 +28,7 @@ jobs:
         run: |
           go build -o $output_name
           tar cvfz $output-name.tar.gz $output_name
+          ls
         env:
           GOOS: darwin
           GOARCH: "amd64"
@@ -36,6 +37,7 @@ jobs:
         run: |
           go build -o $output_name
           tar cvfz $output-name.tar.gz $output_name
+          ls
         env:
           GOOS: linux
           GOARCH: amd64
@@ -45,7 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: envinject.linux-amd64.tar.gz
+          asset_path: ./envinject.linux-amd64.tar.gz
           asset_name: envinject.linux-amd64.tar.gz
           asset_content_type: application/gzip
       - uses: actions/upload-release-asset@v1.0.1
@@ -53,6 +55,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: envinject.darwin-amd64.tar.gz
+          asset_path: ./envinject.darwin-amd64.tar.gz
           asset_name: envinject.darwin-amd64.tar.gz
           asset_content_type: application/gzip
