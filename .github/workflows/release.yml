@@ -32,6 +32,7 @@ jobs:
         env:
           GOOS: darwin
           GOARCH: "amd64"
+          CGO: 0
           output_name: envinject.darwin-amd64
       - name: build linux/amd64
         run: |
@@ -41,6 +42,7 @@ jobs:
         env:
           GOOS: linux
           GOARCH: amd64
+          CGO: 0
           output_name: envinject.linux-amd64
       - uses: actions/upload-release-asset@v1.0.1
         env:
